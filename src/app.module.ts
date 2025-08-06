@@ -9,6 +9,7 @@ import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { PublicController } from './public/public.controller';
 import { PrivateController } from './private/private.controller';
 import { FeedbackModule } from './public/feedback/feedback.module';
+import { FeedbackModule as PrivateFeedbackModule } from './private/feedback/feedback.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { FeedbackModule } from './public/feedback/feedback.module';
     AuthModule,
     UsersModule,
     FeedbackModule,
+    PrivateFeedbackModule,
   ],
   controllers: [AppController, PublicController, PrivateController],
   providers: [
