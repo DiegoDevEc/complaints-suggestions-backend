@@ -6,12 +6,13 @@ import { Public } from './public.decorator';
 import { Roles } from './roles.decorator';
 import { RolesGuard } from './roles.guard';
 import { Role } from '../users/role.enum';
+import { JwtAuthGuard } from './jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @Post('register')
   register(@Body() dto: RegisterDto) {
