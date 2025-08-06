@@ -19,8 +19,9 @@ export class AuthService {
       username: dto.username,
       email: dto.email,
       password: hashed,
+      role: dto.role,
     });
-    return { id: user.id, username: user.username, email: user.email };
+    return { id: user.id, username: user.username, email: user.email, role: user.role };
   }
 
   async validateUser(email: string, password: string) {
@@ -40,7 +41,7 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException();
     }
-    const payload = { sub: user.id, email: user.email };
+    const payload = { sub: user.id, email: user.email, role: user.role };
     return {
       access_token: await this.jwtService.signAsync(payload),
     };
