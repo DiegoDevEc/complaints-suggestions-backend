@@ -5,7 +5,7 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
-import { Public } from '../auth/public.decorator';
+import { Public } from '../../auth/public.decorator';
 import { CreateFeedbackDto } from './dto/create-feedback.dto';
 import { Feedback } from './schemas/feedback.schema';
 import { FeedbackService } from './feedback.service';

@@ -8,7 +8,7 @@ import { UsersModule } from './users/users.module';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { PublicController } from './public/public.controller';
 import { PrivateController } from './private/private.controller';
-import { FeedbackModule } from './feedback/feedback.module';
+import { FeedbackModule } from './public/feedback/feedback.module';
 
 @Module({
   imports: [

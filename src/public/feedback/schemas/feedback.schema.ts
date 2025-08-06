@@ -41,7 +41,7 @@ export class Feedback extends Document {
   @Prop({ required: true })
   longitude: number;
 
-  @ApiProperty({ default: Date.now })
+  @ApiProperty({ default: "2025-08-05T17:00:00.000Z" }) 
   @Prop({ default: Date.now })
   dateRegister: Date;
 }
