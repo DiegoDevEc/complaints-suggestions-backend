@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
 import { Document } from 'mongoose';
 import { FeedbackType } from '../feedback-type.enum';
+import { FeedbackStatus } from '../feedback-status.enum';
 
 @Schema({ collection: 'feedbacks' })
 export class Feedback extends Document {
@@ -29,6 +30,14 @@ export class Feedback extends Document {
   @Prop({ required: true, enum: FeedbackType })
   type: FeedbackType;
 
+  @ApiProperty({ enum: FeedbackStatus, default: FeedbackStatus.PENDING })
+  @Prop({
+    required: true,
+    enum: FeedbackStatus,
+    default: FeedbackStatus.PENDING,
+  })
+  status: FeedbackStatus;
+
   @ApiProperty()
   @Prop({ required: true })
   contacted: boolean;
@@ -41,7 +50,7 @@ export class Feedback extends Document {
   @Prop({ required: true })
   longitude: number;
 
-  @ApiProperty({ default: "2025-08-05T17:00:00.000Z" }) 
+  @ApiProperty({ default: '2025-08-05T17:00:00.000Z' })
   @Prop({ default: Date.now })
   dateRegister: Date;
 }
