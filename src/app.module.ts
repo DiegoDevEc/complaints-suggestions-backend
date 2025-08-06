@@ -1,13 +1,9 @@
 import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { MongooseModule } from '@nestjs/mongoose';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
-import { PublicController } from './public/public.controller';
-import { PrivateController } from './private/private.controller';
 import { FeedbackModule } from './public/feedback/feedback.module';
 import { FeedbackModule as PrivateFeedbackModule } from './private/feedback/feedback.module';
 
@@ -21,9 +17,8 @@ import { FeedbackModule as PrivateFeedbackModule } from './private/feedback/feed
     FeedbackModule,
     PrivateFeedbackModule,
   ],
-  controllers: [AppController, PublicController, PrivateController],
+  controllers: [],
   providers: [
-    AppService,
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
