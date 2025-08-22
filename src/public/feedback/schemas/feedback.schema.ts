@@ -30,6 +30,10 @@ export class Feedback extends Document {
   @Prop({ required: true, enum: FeedbackType })
   type: FeedbackType;
 
+  @ApiProperty()
+  @Prop({ required: true, unique: true })
+  caseNumber: string;
+
   @ApiProperty({ enum: FeedbackStatus, default: FeedbackStatus.PENDING })
   @Prop({
     required: true,
@@ -53,6 +57,10 @@ export class Feedback extends Document {
   @ApiProperty({ default: '2025-08-05T17:00:00.000Z' })
   @Prop({ default: Date.now })
   dateRegister: Date;
+
+  @ApiProperty()
+  @Prop({ required: true })
+  address: string;
 }
 
 export const FeedbackSchema = SchemaFactory.createForClass(Feedback);

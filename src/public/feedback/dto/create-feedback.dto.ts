@@ -47,4 +47,8 @@ export class CreateFeedbackDto {
   @Type(() => Number)
   @IsNumber()
   longitude: number;
+
+  @ApiProperty()
+  @IsString()
+  address: string;
 }
