@@ -30,6 +30,10 @@ export class Feedback extends Document {
   @Prop({ required: true, enum: FeedbackType })
   type: FeedbackType;
 
+  @ApiProperty()
+  @Prop({ required: true, unique: true })
+  caseNumber: string;
+
   @ApiProperty({ enum: FeedbackStatus, default: FeedbackStatus.PENDING })
   @Prop({
     required: true,
