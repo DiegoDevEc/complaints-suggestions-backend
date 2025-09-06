@@ -8,7 +8,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiTags, ApiQuery } from '@nestjs/swagger';
-import { Feedback } from '../../public/feedback/schemas/feedback.schema';
+import { Feedback } from '../../modules/feedback/schemas/feedback.schema';
 import { FeedbackService } from './feedback.service';
 import { UpdateFeedbackStatusDto } from './dto/update-feedback-status.dto';
 
@@ -39,7 +39,7 @@ export class FeedbackController {
   })
   @ApiQuery({ name: 'page', required: false })
   @ApiQuery({ name: 'limit', required: false })
-  async findAll(@Query() query: Record<string, any>) {
+  async findAll(@Query() query: Record<string, unknown>) {
     const { page = 1, limit = 10, ...filters } = query;
     const pageNumber = parseInt(page as string, 10) || 1;
     const limitNumber = parseInt(limit as string, 10) || 10;

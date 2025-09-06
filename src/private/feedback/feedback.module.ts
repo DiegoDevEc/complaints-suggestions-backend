@@ -3,7 +3,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import {
   Feedback,
   FeedbackSchema,
-} from '../../public/feedback/schemas/feedback.schema';
+} from '../../modules/feedback/schemas/feedback.schema';
 import { FeedbackController } from './feedback.controller';
 import { FeedbackService } from './feedback.service';
 
