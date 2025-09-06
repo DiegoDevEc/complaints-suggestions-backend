@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum } from 'class-validator';
-import { FeedbackStatus } from '../../../public/feedback/feedback-status.enum';
+import { FeedbackStatus } from '../../../modules/feedback/feedback-status.enum';
 
 export class UpdateFeedbackStatusDto {
   @ApiProperty({ enum: FeedbackStatus })
