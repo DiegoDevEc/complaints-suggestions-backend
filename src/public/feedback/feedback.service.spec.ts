@@ -1,56 +1,48 @@
-import { FeedbackService } from './feedback.service';
+import { FeedbackService, AttachmentMeta } from './feedback.service';
 import { FeedbackType } from './feedback-type.enum';
-import { Model } from 'mongoose';
-import { Feedback } from './schemas/feedback.schema';
+import { CreateFeedbackDto } from './dto/create-feedback.dto';
 
 describe('FeedbackService', () => {
   let service: FeedbackService;
-  let MockModel: any;
 
   beforeEach(() => {
-    MockModel = function (doc: any) {
-      return { ...doc, save: jest.fn().mockResolvedValue({ ...doc }) };
-    } as any;
-    MockModel.countDocuments = jest.fn();
-    service = new FeedbackService(MockModel as unknown as Model<Feedback>);
+    service = new FeedbackService();
   });
 
-  it('generates sequential case numbers for complaints', async () => {
-    MockModel.countDocuments
-      .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(0) })
-      .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(1) });
-    const dto: any = {
-      lastName: 'Doe',
-      firstName: 'John',
-      email: 'john@example.com',
-      description: 'desc',
-      phone: '123',
-      type: FeedbackType.COMPLAINT,
-      contacted: true,
-      latitude: 0,
-      longitude: 0,
-    };
-    const first = await service.create(dto);
-    expect(first.caseNumber).toBe('COP-00001');
+  const dto: CreateFeedbackDto = {
+    lastName: 'Doe',
+    firstName: 'John',
+    email: 'john@example.com',
+    description: 'desc',
+    phone: '123',
+    type: FeedbackType.COMPLAINT,
+    contacted: true,
+    latitude: 0,
+    longitude: 0,
+    address: 'Somewhere',
+  };
 
-    const second = await service.create(dto);
-    expect(second.caseNumber).toBe('COP-00002');
+  it('creates feedback without attachment', async () => {
+    const result = await service.createFeedback(dto);
+    expect(result.id).toBeDefined();
+    expect(result.createdAt).toBeDefined();
+    expect(result.attachment).toBeNull();
   });
 
-  it('uses suggestion prefix', async () => {
-    MockModel.countDocuments.mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(0) });
-    const dto: any = {
-      lastName: 'Doe',
-      firstName: 'Jane',
-      email: 'jane@example.com',
-      description: 'desc',
-      phone: '123',
-      type: FeedbackType.SUGGESTION,
-      contacted: true,
-      latitude: 0,
-      longitude: 0,
+  it('creates feedback with attachment', async () => {
+    const attachment: AttachmentMeta = {
+      url: '/public/files/2025/09/file.png',
+      mimeType: 'image/png',
+      size: 100,
+      originalName: 'file.png',
+      filename: 'uuid.png',
     };
-    const created = await service.create(dto);
-    expect(created.caseNumber).toBe('SUG-00001');
+    const result = await service.createFeedback(dto, attachment);
+    expect(result.attachment).toEqual({
+      url: attachment.url,
+      mimeType: attachment.mimeType,
+      size: attachment.size,
+      originalName: attachment.originalName,
+    });
   });
 });

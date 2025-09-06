@@ -1,30 +1,51 @@
-import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Injectable, Logger } from '@nestjs/common';
+import { randomUUID } from 'crypto';
 import { CreateFeedbackDto } from './dto/create-feedback.dto';
-import { Feedback } from './schemas/feedback.schema';
-import { FeedbackType } from './feedback-type.enum';
+
+export interface AttachmentMeta {
+  url: string;
+  mimeType: string;
+  size: number;
+  originalName: string;
+  filename: string;
+}
+
+export interface FeedbackResponse extends CreateFeedbackDto {
+  id: string;
+  attachment: {
+    url: string;
+    mimeType: string;
+    size: number;
+    originalName: string;
+  } | null;
+  createdAt: string;
+}
 
 @Injectable()
 export class FeedbackService {
-  constructor(
-    @InjectModel(Feedback.name) private readonly feedbackModel: Model<Feedback>,
-  ) {}
+  private readonly logger = new Logger(FeedbackService.name);
+  private readonly feedbacks: FeedbackResponse[] = [];
 
-  async create(data: CreateFeedbackDto): Promise<Feedback> {
-    const caseNumber = await this.generateCaseNumber(data.type);
-    const created = new this.feedbackModel({ ...data, caseNumber });
-    return created.save();
-  }
-
-  private async generateCaseNumber(type: FeedbackType): Promise<string> {
-    const count = await this.feedbackModel.countDocuments({ type }).exec();
-    const next = (count + 1).toString().padStart(5, '0');
-    const prefixMap: Record<FeedbackType, string> = {
-      [FeedbackType.COMPLAINT]: 'COP',
-      [FeedbackType.SUGGESTION]: 'SUG',
-      [FeedbackType.COMPLIMENT]: 'COM',
+  async createFeedback(
+    dto: CreateFeedbackDto,
+    attachment?: AttachmentMeta,
+  ): Promise<FeedbackResponse> {
+    this.logger.log('Creating feedback');
+    const feedback: FeedbackResponse = {
+      id: randomUUID(),
+      ...dto,
+      attachment: attachment
+        ? {
+            url: attachment.url,
+            mimeType: attachment.mimeType,
+            size: attachment.size,
+            originalName: attachment.originalName,
+          }
+        : null,
+      createdAt: new Date().toISOString(),
     };
-    return `${prefixMap[type]}-${next}`;
+    this.feedbacks.push({ ...feedback });
+    this.logger.log(`Feedback created: ${feedback.id}`);
+    return feedback;
   }
 }
