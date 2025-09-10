@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Document } from 'mongoose';
 import { FeedbackType } from '../feedback-type.enum';
 import { FeedbackStatus } from '../feedback-status.enum';
@@ -61,6 +61,37 @@ export class Feedback extends Document {
   @ApiProperty()
   @Prop({ required: true })
   address: string;
+
+  @ApiPropertyOptional({
+    type: 'object',
+    properties: {
+      url: { type: 'string' },
+      mimeType: { type: 'string' },
+      size: { type: 'number' },
+      originalName: { type: 'string' },
+      filename: { type: 'string' },
+    },
+    nullable: true,
+  })
+  @Prop({
+    type: {
+      url: String,
+      mimeType: String,
+      size: Number,
+      originalName: String,
+      filename: String,
+    },
+    _id: false,
+    required: false,
+    default: null, // permite guardar sin adjunto
+  })
+  attachment?: {
+    url: string;
+    mimeType: string;
+    size: number;
+    originalName: string;
+    filename: string;
+  } | null;
 }
 
 export const FeedbackSchema = SchemaFactory.createForClass(Feedback);
