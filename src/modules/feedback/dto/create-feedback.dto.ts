@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
-  IsBoolean,
+  IsBooleanString,
   IsEmail,
   IsEnum,
   IsNumber,
@@ -35,7 +35,7 @@ export class CreateFeedbackDto {
   type: FeedbackType;
 
   @ApiProperty()
-  @IsBoolean()
+  @IsBooleanString()
   contacted: boolean;
 
   @ApiProperty()
