@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { User } from './user.schema';
 import { PersonalData } from './personal-data.schema';
 
@@ -23,7 +23,7 @@ export class UsersService {
       user: createdUser._id,
     });
     await personal.save();
-    createdUser.personalData = personal._id;
+    createdUser.personalData = personal._id as Types.ObjectId;
     return createdUser.save();
   }
 

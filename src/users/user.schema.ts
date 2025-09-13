@@ -13,6 +13,7 @@ export class User extends Document {
   @Prop({ required: true })
   password: string;
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   @Prop({ required: true, enum: Role, default: Role.EMPLOYEE })
   role: Role;
 
