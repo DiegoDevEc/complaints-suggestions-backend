@@ -1,0 +1,63 @@
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
+import { ApiBody, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { Company } from '../../modules/company/schemas/company.schema';
+import { CompanyService } from './company.service';
+import { CreateCompanyDto } from './dto/create-company.dto';
+import { UpdateCompanyDto } from './dto/update-company.dto';
+
+@ApiTags('Company')
+@Controller('private/companies')
+export class CompanyController {
+  constructor(private readonly companyService: CompanyService) {}
+
+  @Post()
+  @ApiOperation({ summary: 'Create company' })
+  @ApiBody({ type: CreateCompanyDto })
+  create(@Body() dto: CreateCompanyDto): Promise<Company> {
+    return this.companyService.create(dto);
+  }
+
+  @Get()
+  @ApiOperation({
+    summary: 'List feedback entries with pagination and filters',
+  })
+  @ApiQuery({ name: 'page', required: false })
+  @ApiQuery({ name: 'limit', required: false })
+  async findAll(@Query() query: Record<string, unknown>) {
+    const { page = 1, limit = 10, ...filters } = query;
+    const pageNumber = parseInt(page as string, 10) || 1;
+    const limitNumber = parseInt(limit as string, 10) || 10;
+    return this.companyService.findAll(pageNumber, limitNumber, filters);
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Get company by id' })
+  findOne(@Param('id') id: string): Promise<Company> {
+    return this.companyService.findOne(id);
+  }
+
+  @Patch(':id')
+  @ApiOperation({ summary: 'Update company' })
+  @ApiBody({ type: UpdateCompanyDto })
+  update(
+    @Param('id') id: string,
+    @Body() dto: UpdateCompanyDto,
+  ): Promise<Company> {
+    return this.companyService.update(id, dto);
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete company' })
+  remove(@Param('id') id: string): Promise<Company> {
+    return this.companyService.remove(id);
+  }
+}
