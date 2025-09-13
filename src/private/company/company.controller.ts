@@ -6,8 +6,9 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
-import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { Company } from '../../modules/company/schemas/company.schema';
 import { CompanyService } from './company.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
@@ -26,9 +27,16 @@ export class CompanyController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'List companies' })
-  findAll(): Promise<Company[]> {
-    return this.companyService.findAll();
+  @ApiOperation({
+    summary: 'List feedback entries with pagination and filters',
+  })
+  @ApiQuery({ name: 'page', required: false })
+  @ApiQuery({ name: 'limit', required: false })
+  async findAll(@Query() query: Record<string, unknown>) {
+    const { page = 1, limit = 10, ...filters } = query;
+    const pageNumber = parseInt(page as string, 10) || 1;
+    const limitNumber = parseInt(limit as string, 10) || 10;
+    return this.companyService.findAll(pageNumber, limitNumber, filters);
   }
 
   @Get(':id')

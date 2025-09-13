@@ -16,8 +16,30 @@ export class CompanyService {
     return company.save();
   }
 
-  async findAll(): Promise<Company[]> {
-    return this.companyModel.find().exec();
+  async findAll(
+    page = 1,
+    limit = 10,
+    filters: Record<string, unknown> = {},
+  ): Promise<{ data: Company[]; total: number; page: number; limit: number }> {
+    const skip = (page - 1) * limit;
+
+    const mongoFilters: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(filters)) {
+      if (typeof value === 'string') {
+        mongoFilters[key] = { $regex: value, $options: 'i' };
+      } else {
+        mongoFilters[key] = value;
+      }
+    }
+
+    const query = this.companyModel.find(mongoFilters).skip(skip).limit(limit);
+
+    const [data, total] = await Promise.all([
+      query.exec(),
+      this.companyModel.countDocuments(mongoFilters).exec(),
+    ]);
+
+    return { data, total, page, limit };
   }
 
   async findOne(id: string): Promise<Company> {
@@ -39,7 +61,9 @@ export class CompanyService {
   }
 
   async remove(id: string): Promise<Company> {
-    const company = await this.companyModel.findByIdAndDelete(id).exec();
+    const company = await this.companyModel
+      .findByIdAndUpdate(id, { status: 'INA' }, { new: true })
+      .exec();
     if (!company) {
       throw new NotFoundException(`Company with ID ${id} not found`);
     }
