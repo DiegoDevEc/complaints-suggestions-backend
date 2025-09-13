@@ -6,6 +6,7 @@ import { UsersModule } from './users/users.module';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { FeedbackModule } from './modules/feedback/feedback.module';
 import { FeedbackModule as PrivateFeedbackModule } from './private/feedback/feedback.module';
+import { CompanyModule } from './private/company/company.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { FeedbackModule as PrivateFeedbackModule } from './private/feedback/feed
     UsersModule,
     FeedbackModule,
     PrivateFeedbackModule,
+    CompanyModule,
   ],
   controllers: [],
   providers: [
