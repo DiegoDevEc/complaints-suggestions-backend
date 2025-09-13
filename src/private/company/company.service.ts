@@ -32,7 +32,11 @@ export class CompanyService {
       }
     }
 
-    const query = this.companyModel.find(mongoFilters).skip(skip).limit(limit);
+    const query = this.companyModel
+      .find(mongoFilters)
+      .skip(skip)
+      .limit(limit)
+      .populate('contacts');
 
     const [data, total] = await Promise.all([
       query.exec(),
@@ -43,7 +47,7 @@ export class CompanyService {
   }
 
   async findOne(id: string): Promise<Company> {
-    const company = await this.companyModel.findById(id).exec();
+    const company = await this.companyModel.findById(id).populate('contacts').exec();
     if (!company) {
       throw new NotFoundException(`Company with ID ${id} not found`);
     }
@@ -53,6 +57,7 @@ export class CompanyService {
   async update(id: string, dto: UpdateCompanyDto): Promise<Company> {
     const company = await this.companyModel
       .findByIdAndUpdate(id, dto, { new: true })
+      .populate('contacts')
       .exec();
     if (!company) {
       throw new NotFoundException(`Company with ID ${id} not found`);
@@ -63,9 +68,25 @@ export class CompanyService {
   async remove(id: string): Promise<Company> {
     const company = await this.companyModel
       .findByIdAndUpdate(id, { status: 'INA' }, { new: true })
+      .populate('contacts')
       .exec();
     if (!company) {
       throw new NotFoundException(`Company with ID ${id} not found`);
+    }
+    return company;
+  } 
+
+  async addContact(companyId: string, personId: string): Promise<Company> {
+    const company = await this.companyModel
+      .findByIdAndUpdate(
+        companyId,
+        { $addToSet: { contacts: personId } },
+        { new: true },
+      )
+      .populate('contacts')
+      .exec();
+    if (!company) {
+      throw new NotFoundException(`Company with ID ${companyId} not found`);
     }
     return company;
   }

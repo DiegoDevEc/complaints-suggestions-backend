@@ -13,6 +13,7 @@ import { Company } from '../../modules/company/schemas/company.schema';
 import { CompanyService } from './company.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
+import { AddContactDto } from './dto/add-contact.dto';
 
 @ApiTags('Company')
 @Controller('private/companies')
@@ -37,6 +38,16 @@ export class CompanyController {
     const pageNumber = parseInt(page as string, 10) || 1;
     const limitNumber = parseInt(limit as string, 10) || 10;
     return this.companyService.findAll(pageNumber, limitNumber, filters);
+  }
+
+  @Post(':id/contacts')
+  @ApiOperation({ summary: 'Add contact to company' })
+  @ApiBody({ type: AddContactDto })
+  addContact(
+    @Param('id') id: string,
+    @Body() dto: AddContactDto,
+  ): Promise<Company> {
+    return this.companyService.addContact(id, dto.personId);
   }
 
   @Get(':id')
