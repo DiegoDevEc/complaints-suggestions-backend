@@ -2,14 +2,29 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from './user.schema';
+import { PersonalData } from './personal-data.schema';
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name) private userModel: Model<User>) {}
+  constructor(
+    @InjectModel(User.name) private userModel: Model<User>,
+    @InjectModel(PersonalData.name)
+    private personalDataModel: Model<PersonalData>,
+  ) {}
 
-  async create(data: Partial<User>): Promise<User> {
-    const created = new this.userModel(data);
-    return created.save();
+  async create(
+    userData: Partial<User>,
+    personalData: Partial<PersonalData>,
+  ): Promise<User> {
+    const createdUser = new this.userModel(userData);
+    await createdUser.save();
+    const personal = new this.personalDataModel({
+      ...personalData,
+      user: createdUser._id,
+    });
+    await personal.save();
+    createdUser.personalData = personal._id;
+    return createdUser.save();
   }
 
   async findByEmail(email: string): Promise<User | null> {
