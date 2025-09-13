@@ -16,18 +16,14 @@ describe('RolesGuard', () => {
   };
 
   it('allows access for required role', () => {
-    jest
-      .spyOn(reflector, 'getAllAndOverride')
-      .mockReturnValue([Role.ADMIN]);
+    jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue([Role.ADMIN]);
     const context = createContext(Role.ADMIN);
     expect(guard.canActivate(context)).toBe(true);
   });
 
   it('denies access for missing role', () => {
-    jest
-      .spyOn(reflector, 'getAllAndOverride')
-      .mockReturnValue([Role.ADMIN]);
-    const context = createContext(Role.USER);
+    jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue([Role.ADMIN]);
+    const context = createContext(Role.EMPLOYEE);
     expect(() => guard.canActivate(context)).toThrow(ForbiddenException);
   });
 });

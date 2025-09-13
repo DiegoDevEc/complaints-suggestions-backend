@@ -6,7 +6,11 @@ describe('FeedbackService', () => {
   let service: FeedbackService;
 
   beforeEach(() => {
-    service = new FeedbackService();
+    const feedbackModel = jest.fn().mockImplementation((data) => ({
+      ...data,
+      save: jest.fn(),
+    }));
+    service = new FeedbackService(feedbackModel as any);
   });
 
   const dto: CreateFeedbackDto = {

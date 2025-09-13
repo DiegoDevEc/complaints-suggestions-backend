@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { RegisterDto } from './dto/register.dto';
@@ -7,7 +11,10 @@ import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class AuthService {
-  constructor(private usersService: UsersService, private jwtService: JwtService) {}
+  constructor(
+    private usersService: UsersService,
+    private jwtService: JwtService,
+  ) {}
 
   async register(dto: RegisterDto) {
     const existing = await this.usersService.findByEmail(dto.email);
@@ -15,13 +22,24 @@ export class AuthService {
       throw new BadRequestException('Email already exists');
     }
     const hashed = await bcrypt.hash(dto.password, 10);
-    const user = await this.usersService.create({
-      username: dto.username,
-      email: dto.email,
-      password: hashed,
-      role: dto.role,
-    });
-    return { id: user.id, username: user.username, email: user.email, role: user.role };
+    const user = await this.usersService.create(
+      {
+        username: dto.username,
+        email: dto.email,
+        password: hashed,
+      },
+      {
+        name: dto.name,
+        lastname: dto.lastname,
+        dni: dto.dni,
+      },
+    );
+    return {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+    };
   }
 
   async validateUser(email: string, password: string) {
@@ -40,6 +58,10 @@ export class AuthService {
     const user = await this.validateUser(dto.email, dto.password);
     if (!user) {
       throw new UnauthorizedException();
+    }
+    if (user.isFirstLogin) {
+      user.isFirstLogin = false;
+      await user.save();
     }
     const payload = { sub: user.id, email: user.email, role: user.role };
     return {
