@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { CreateFeedbackDto } from './dto/create-feedback.dto';
 import { FeedbackResponseDto } from './dto/feedback-response.dto';
@@ -21,7 +21,7 @@ export class FeedbackService {
 
   constructor(
     @InjectModel(Feedback.name) private feedbackModel: Model<Feedback>,
-  ) {}
+  ) { }
 
   createFeedback(
     dto: CreateFeedbackDto,
@@ -67,5 +67,16 @@ export class FeedbackService {
     const d = String(new Date().getDate()).padStart(2, '0');
     const n = ((Math.random() * 1e6) | 0).toString().padStart(6, '0');
     return `FB-${y}${m}${d}-${n}`;
+  }
+
+  async feedbackByCode(caseNumber: string): Promise<Feedback> {
+    const feedbackByCode = await this.feedbackModel
+      .findOne({ caseNumber: caseNumber })
+      .exec();
+
+    if (!feedbackByCode) {
+      throw new NotFoundException(`Feedback with ID ${caseNumber} not found`);
+    }
+    return feedbackByCode;
   }
 }

@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   Logger,
   Post,
   UploadedFile,
@@ -21,6 +22,8 @@ import { FeedbackResponseDto } from './dto/feedback-response.dto';
 import { FeedbackService, AttachmentMeta } from './feedback.service';
 import { StorageService } from '../../storage/storage.service';
 import { AttachmentValidationPipe, getRelativePath } from '../upload';
+import { ViewFeedbackDto } from './dto/view-feedback.dto';
+import { Feedback } from './schemas/feedback.schema';
 
 /**
  * curl -X POST http://localhost:3000/public/feedback \
@@ -56,8 +59,6 @@ export class FeedbackController {
     @Body() dto: CreateFeedbackDto,
     @UploadedFile(AttachmentValidationPipe) file?: MulterFile,
   ): FeedbackResponseDto {
-    this.logger.log('Handling feedback creation');
-
     let attachmentMeta: AttachmentMeta | undefined;
     /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument */
     if (file) {
@@ -72,10 +73,15 @@ export class FeedbackController {
         filename,
       };
     }
-    /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument */
-
     const result = this.feedbackService.createFeedback(dto, attachmentMeta);
     this.logger.log(`Feedback created: ${result.id}`);
     return result;
+  }
+
+  @Public()
+  @Get('/view-feedback')
+  @ApiBody({ type: ViewFeedbackDto })
+  viewFeedback(@Body() dto: ViewFeedbackDto): Promise<Feedback> {
+    return this.feedbackService.feedbackByCode(dto.caseNumber);
   }
 }

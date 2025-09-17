@@ -38,13 +38,6 @@ export class NotificationsService {
     }
 
     const url = new URL(this.apiUrl);
-    /*const payload = JSON.stringify({
-      to: options.to,
-      subject: options.subject,
-      html: options.html,
-      text: options.text,
-      from: options.from ?? this.defaultFrom,
-    });*/
     const payload = JSON.stringify({
       from: options.from ?? this.defaultFrom,
       to: [options.to], // Resend espera un array
