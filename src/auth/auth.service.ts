@@ -8,6 +8,7 @@ import * as bcrypt from 'bcrypt';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { UsersService } from '../users/users.service';
+import { log } from 'console';
 
 @Injectable()
 export class AuthService {
@@ -27,6 +28,7 @@ export class AuthService {
         username: dto.username,
         email: dto.email,
         password: hashed,
+        status: 'ACT',
       },
       {
         name: dto.name,
@@ -41,6 +43,43 @@ export class AuthService {
       email: user.email,
       role: user.role,
     };
+  }
+
+  async updateUser(id: string, dto: RegisterDto) {
+    const existing = await this.usersService.findByEmail(dto.email);
+    if (existing && existing.id !== id) {
+      throw new BadRequestException('Email already exists');
+    }
+    const user = await this.usersService.update(
+      id,
+      {
+        username: dto.username,
+        email: dto.email,
+        status: 'ACT',
+      },
+      {
+        name: dto.name,
+        lastname: dto.lastname,
+        dni: dto.dni,
+        phone: dto.phone,
+      },
+    );
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+    return {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+    };
+  }
+
+  async deleteUser(id: string) {
+    const user = await this.usersService.delete(id);
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
   }
 
   async validateUser(email: string, password: string) {

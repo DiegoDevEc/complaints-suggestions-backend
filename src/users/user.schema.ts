@@ -17,6 +17,9 @@ export class User extends Document {
   @Prop({ required: true, enum: Role, default: Role.EMPLOYEE })
   role: Role;
 
+  @Prop({ required: true })
+  status: string;
+
   @Prop({ default: true })
   isFirstLogin: boolean;
 

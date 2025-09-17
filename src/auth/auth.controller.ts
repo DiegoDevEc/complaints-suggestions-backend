@@ -1,5 +1,5 @@
 import { UsersService } from './../users/users.service';
-import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -22,10 +22,39 @@ export class AuthController {
     return this.authService.register(dto);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @Patch('users/:id')
+  update(@Param('id') id: string, @Body() dto: RegisterDto) {
+    return this.authService.updateUser(id, dto);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @Delete('users/:id')
+  delete(@Param('id') id: string) {
+    return this.authService.deleteUser(id);
+  }
+
   @Public()
   @Post('login')
   login(@Body() dto: LoginDto) {
     return this.authService.login(dto);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @Get('users')
+  @ApiOperation({
+    summary: 'Lista de usuarios con paginación y filtros',
+  })
+  @ApiQuery({ name: 'page', required: false })
+  @ApiQuery({ name: 'limit', required: false })
+  async getAllUsersAdmin(@Query() query: Record<string, unknown>) {
+    const { page = 1, limit = 10, ...filters } = query;
+    const pageNumber = parseInt(page as string, 10) || 1;
+    const limitNumber = parseInt(limit as string, 10) || 10;
+    return this.usersService.findAllAdmin(pageNumber, limitNumber, filters);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
