@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Company } from '../../modules/company/schemas/company.schema';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
@@ -9,7 +9,7 @@ import { UpdateCompanyDto } from './dto/update-company.dto';
 export class CompanyService {
   constructor(
     @InjectModel(Company.name) private readonly companyModel: Model<Company>,
-  ) {}
+  ) { }
 
   async create(dto: CreateCompanyDto): Promise<Company> {
     const company = new this.companyModel(dto);
@@ -36,7 +36,10 @@ export class CompanyService {
       .find(mongoFilters)
       .skip(skip)
       .limit(limit)
-      .populate('contacts');
+      .populate({
+        path: 'contacts',
+        populate: { path: 'user' }, // 👈 populamos también el User dentro de cada contacto
+      });
 
     const [data, total] = await Promise.all([
       query.exec(),
@@ -47,7 +50,9 @@ export class CompanyService {
   }
 
   async findOne(id: string): Promise<Company> {
-    const company = await this.companyModel.findById(id).populate('contacts').exec();
+    const company = await this.companyModel.findById(id)
+      .populate('contacts').exec();
+
     if (!company) {
       throw new NotFoundException(`Company with ID ${id} not found`);
     }
@@ -74,16 +79,19 @@ export class CompanyService {
       throw new NotFoundException(`Company with ID ${id} not found`);
     }
     return company;
-  } 
+  }
 
   async addContact(companyId: string, personId: string): Promise<Company> {
     const company = await this.companyModel
       .findByIdAndUpdate(
         companyId,
-        { $addToSet: { contacts: personId } },
+        { $addToSet: { contacts: new Types.ObjectId(personId) } },
         { new: true },
       )
-      .populate('contacts')
+      .populate({
+        path: 'contacts',
+        populate: { path: 'user' },
+      })
       .exec();
     if (!company) {
       throw new NotFoundException(`Company with ID ${companyId} not found`);
