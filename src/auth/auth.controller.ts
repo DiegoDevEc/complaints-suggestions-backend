@@ -30,14 +30,14 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly usersService: UsersService,
     private readonly notificationsService: NotificationsService,
-  ) {}
+  ) { }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @Post('register')
   async register(@Body() dto: RegisterDto) {
     const user = await this.authService.register(dto);
-    const { subject, html, text } = this.buildCredentialsEmailTemplate(
+    const { subject, html } = this.buildCredentialsEmailTemplate(
       dto.username,
       dto.password,
     );
@@ -46,7 +46,6 @@ export class AuthController {
         to: dto.email,
         subject,
         html,
-        text,
       });
     } catch (error) {
       this.logger.error(
@@ -108,28 +107,44 @@ export class AuthController {
   }
 
   private buildCredentialsEmailTemplate(username: string, password: string) {
-    const subject = 'Credenciales de acceso';
+    const subject = '🎉 Bienvenido a Complaints & Suggestions';
+
     const html = `
-      <div style="font-family: Arial, sans-serif; color: #1a1a1a;">
-        <h2>Bienvenido a Complaints & Suggestions</h2>
-        <p>Tu cuenta ha sido creada correctamente. Estas son tus credenciales de acceso:</p>
-        <ul>
-          <li><strong>Usuario:</strong> ${username}</li>
-          <li><strong>Contraseña:</strong> ${password}</li>
-        </ul>
-        <p>Te recomendamos iniciar sesión y actualizar tu contraseña cuanto antes.</p>
-        <p>Si tú no solicitaste este registro, contacta con el administrador.</p>
+    <div style="font-family: Arial, sans-serif; background-color: #f9fafb; padding: 20px; color: #333;">
+      <div style="max-width: 600px; margin: auto; background: #ffffff; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); overflow: hidden;">
+        
+        <div style="background-color: #2563eb; color: white; padding: 16px; text-align: center;">
+          <h1 style="margin: 0; font-size: 22px;">Bienvenido al Sistema Quejas y Sugerencias</h1>
+        </div>
+
+        <div style="padding: 24px;">
+          <p style="font-size: 16px; margin-bottom: 16px;">
+            ¡Hola! 👋<br>
+            Tu cuenta ha sido creada correctamente. Aquí tienes tus credenciales de acceso:
+          </p>
+
+          <div style="background-color: #f3f4f6; padding: 16px; border-radius: 6px; margin-bottom: 20px;">
+            <p style="margin: 0; font-size: 15px;">
+              <strong>Usuario:</strong> <span style="color: #111827;">${username}</span><br>
+              <strong>Contraseña:</strong> <span style="color: #111827;">${password}</span>
+            </p>
+          </div>
+
+          <p style="font-size: 15px; margin-bottom: 12px;">
+            🔑 Te recomendamos iniciar sesión y actualizar tu contraseña cuanto antes para mayor seguridad.
+          </p>
+
+          <p style="font-size: 14px; color: #6b7280;">
+            Si tú no solicitaste este registro, por favor contacta con el administrador.
+          </p>
+        </div>
+
+        <div style="background-color: #f9fafb; padding: 12px; text-align: center; font-size: 12px; color: #9ca3af;">
+          © ${new Date().getFullYear()} Complaints & Suggestions · Todos los derechos reservados
+        </div>
       </div>
-    `;
-    const text = [
-      'Bienvenido a Complaints & Suggestions',
-      '',
-      'Tu cuenta ha sido creada correctamente.',
-      `Usuario: ${username}`,
-      `Contraseña: ${password}`,
-      '',
-      'Te recomendamos iniciar sesión y actualizar tu contraseña cuanto antes.',
-    ].join('\n');
-    return { subject, html, text };
+    </div>
+  `;
+    return { subject, html };
   }
 }

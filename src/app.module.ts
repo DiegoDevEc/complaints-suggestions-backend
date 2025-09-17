@@ -7,6 +7,7 @@ import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { FeedbackModule } from './modules/feedback/feedback.module';
 import { FeedbackModule as PrivateFeedbackModule } from './private/feedback/feedback.module';
 import { CompanyModule } from './private/company/company.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -18,6 +19,9 @@ import { CompanyModule } from './private/company/company.module';
     FeedbackModule,
     PrivateFeedbackModule,
     CompanyModule,
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
   ],
   controllers: [],
   providers: [

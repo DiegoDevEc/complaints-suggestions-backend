@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { request as httpRequest } from 'node:http';
 import { request as httpsRequest } from 'node:https';
 import { URL } from 'node:url';
@@ -18,16 +19,17 @@ export class NotificationsService {
   private readonly apiKey?: string;
   private readonly defaultFrom: string;
 
-  constructor() {
-    this.apiUrl = process.env.EMAIL_API_URL;
-    this.apiKey = process.env.EMAIL_API_KEY;
+  constructor(private readonly configService: ConfigService) {
+    this.apiUrl = this.configService.get<string>('EMAIL_API_URL');
+    this.apiKey = this.configService.get<string>('EMAIL_API_KEY');
     this.defaultFrom =
-      process.env.EMAIL_FROM ||
-      process.env.EMAIL_SENDER ||
+      this.configService.get<string>('EMAIL_FROM') ||
+      this.configService.get<string>('EMAIL_SENDER') ||
       'no-reply@complaints-suggestions.com';
   }
 
   async sendEmail(options: SendEmailOptions): Promise<void> {
+    this.logger.warn(this.apiUrl);
     if (!this.apiUrl) {
       this.logger.warn(
         'EMAIL_API_URL no está configurado. El correo no se enviará.',
@@ -36,12 +38,18 @@ export class NotificationsService {
     }
 
     const url = new URL(this.apiUrl);
-    const payload = JSON.stringify({
+    /*const payload = JSON.stringify({
       to: options.to,
       subject: options.subject,
       html: options.html,
       text: options.text,
       from: options.from ?? this.defaultFrom,
+    });*/
+    const payload = JSON.stringify({
+      from: options.from ?? this.defaultFrom,
+      to: [options.to], // Resend espera un array
+      subject: options.subject,
+      html: options.html,
     });
 
     const headers: Record<string, string> = {
@@ -79,8 +87,7 @@ export class NotificationsService {
               res.on('end', () => {
                 reject(
                   new Error(
-                    `Email API responded with status ${statusCode}${
-                      body ? `: ${body}` : ''
+                    `Email API responded with status ${statusCode}${body ? `: ${body}` : ''
                     }`,
                   ),
                 );
@@ -96,8 +103,7 @@ export class NotificationsService {
       });
     } catch (error) {
       this.logger.error(
-        `Fallo al enviar correo a ${options.to}: ${
-          error instanceof Error ? error.message : error
+        `Fallo al enviar correo a ${options.to}: ${error instanceof Error ? error.message : error
         }`,
       );
       throw error;
