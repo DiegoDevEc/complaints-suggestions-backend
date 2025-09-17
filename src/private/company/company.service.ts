@@ -98,4 +98,24 @@ export class CompanyService {
     }
     return company;
   }
+
+  async removeContact(companyId: string, personId: string): Promise<Company> {
+    const company = await this.companyModel
+      .findByIdAndUpdate(
+        companyId,
+        { $pull: { contacts: new Types.ObjectId(personId) } },
+        { new: true },
+      )
+      .populate({
+        path: 'contacts',
+        populate: { path: 'user' },
+      })
+      .exec();
+
+    if (!company) {
+      throw new NotFoundException(`Company with ID ${companyId} not found`);
+    }
+
+    return company;
+  }
 }

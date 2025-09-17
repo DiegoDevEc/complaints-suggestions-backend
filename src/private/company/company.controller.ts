@@ -14,6 +14,7 @@ import { CompanyService } from './company.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
 import { AddContactDto } from './dto/add-contact.dto';
+import { RemoveContactDto } from './dto/remove-contact.dto';
 
 @ApiTags('Company')
 @Controller('private/companies')
@@ -48,6 +49,16 @@ export class CompanyController {
     @Body() dto: AddContactDto,
   ): Promise<Company> {
     return this.companyService.addContact(id, dto.personId);
+  }
+
+  @Patch(':id/contacts')
+  @ApiOperation({ summary: 'Remove contact to company' })
+  @ApiBody({ type: RemoveContactDto })
+  removeContact(
+    @Param('id') id: string,
+    @Body() dto: RemoveContactDto,
+  ): Promise<Company> {
+    return this.companyService.removeContact(id, dto.personId);
   }
 
   @Get(':id')
