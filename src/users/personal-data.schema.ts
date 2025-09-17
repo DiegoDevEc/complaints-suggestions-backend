@@ -12,6 +12,9 @@ export class PersonalData extends Document {
   @Prop({ required: true })
   dni: string;
 
+  @Prop({ required: true })
+  phone: string;
+
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   user: Types.ObjectId;
 }

@@ -32,6 +32,7 @@ export class AuthService {
         name: dto.name,
         lastname: dto.lastname,
         dni: dto.dni,
+        phone: dto.phone,
       },
     );
     return {

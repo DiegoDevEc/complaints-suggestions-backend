@@ -20,4 +20,7 @@ export class RegisterDto {
 
   @IsString()
   dni: string;
+
+  @IsString()
+  phone: string;
 }
