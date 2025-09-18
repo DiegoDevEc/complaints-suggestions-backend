@@ -6,11 +6,17 @@ import {
   Param,
   Patch,
   Query,
+  Req,
 } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiTags, ApiQuery } from '@nestjs/swagger';
 import { Feedback } from '../../modules/feedback/schemas/feedback.schema';
 import { FeedbackService } from './feedback.service';
 import { UpdateFeedbackStatusDto } from './dto/update-feedback-status.dto';
+import { JwtUserPayload } from '../../auth/interfaces/jwt-user-payload.interface';
+import { Request } from 'express';
+import { log } from 'node:console';
+
+type RequestWithUser = Request & { user: JwtUserPayload };
 
 @ApiTags('Feedback')
 @Controller('private/feedback')
@@ -23,14 +29,23 @@ export class FeedbackController {
   async updateStatus(
     @Param('id') id: string,
     @Body() dto: UpdateFeedbackStatusDto,
+    @Req() req: RequestWithUser,
   ): Promise<Feedback> {
-    return this.feedbackService.updateStatus(id, dto.status);
+    return this.feedbackService.updateStatus(
+      id,
+      dto.status,
+      req.user,
+      dto.note,
+    );
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Cancel feedback entry' })
-  async cancel(@Param('id') id: string): Promise<Feedback> {
-    return this.feedbackService.cancel(id);
+  async cancel(
+    @Param('id') id: string,
+    @Req() req: RequestWithUser,
+  ): Promise<Feedback> {
+    return this.feedbackService.cancel(id, req.user);
   }
 
   @Get()

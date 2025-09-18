@@ -2,7 +2,9 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Feedback } from '../../modules/feedback/schemas/feedback.schema';
+import type { FeedbackStatusHistoryEntry } from '../../modules/feedback/schemas/feedback.schema';
 import { FeedbackStatus } from '../../modules/feedback/feedback-status.enum';
+import { JwtUserPayload } from '../../auth/interfaces/jwt-user-payload.interface';
 
 @Injectable()
 export class FeedbackService {
@@ -10,20 +12,46 @@ export class FeedbackService {
     @InjectModel(Feedback.name) private readonly feedbackModel: Model<Feedback>,
   ) {}
 
-  async updateStatus(id: string, status: FeedbackStatus): Promise<Feedback> {
-    const updated = await this.feedbackModel
-      .findByIdAndUpdate(id, { status }, { new: true })
-      .exec();
+  async updateStatus(
+    id: string,
+    status: FeedbackStatus,
+    user: JwtUserPayload,
+    note?: string,
+  ): Promise<Feedback> {
+    const feedback = await this.feedbackModel.findById(id).exec();
 
-    if (!updated) {
+    if (!feedback) {
       throw new NotFoundException(`Feedback with ID ${id} not found`);
     }
 
-    return updated;
+    feedback.status = status;
+
+    if (!feedback.statusHistory) {
+      feedback.statusHistory = [];
+    }
+    const historyEntry: FeedbackStatusHistoryEntry = {
+      status,
+      changedAt: new Date(),
+      changedBy: {
+        userId: user.userId,
+        email: user.email,
+        name: user.name,
+        lastname: user.lastname,
+        phone: user.phone,
+      },
+    };
+
+    if (note !== undefined) {
+      historyEntry.note = note;
+    }
+    feedback.statusHistory.push(historyEntry);
+    await feedback.save();
+
+    return feedback;
   }
 
-  async cancel(id: string): Promise<Feedback> {
-    return this.updateStatus(id, FeedbackStatus.CANCEL);
+  async cancel(id: string, user: JwtUserPayload): Promise<Feedback> {
+    return this.updateStatus(id, FeedbackStatus.CANCEL, user);
   }
 
   async findAll(

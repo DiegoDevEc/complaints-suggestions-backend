@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { Role } from './role.enum';
+import { PersonalData } from './personal-data.schema';
 
 @Schema()
 export class User extends Document {
@@ -24,7 +25,7 @@ export class User extends Document {
   isFirstLogin: boolean;
 
   @Prop({ type: Types.ObjectId, ref: 'PersonalData' })
-  personalData: Types.ObjectId;
+  personalData: Types.ObjectId | PersonalData;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

@@ -4,6 +4,56 @@ import { Document } from 'mongoose';
 import { FeedbackType } from '../feedback-type.enum';
 import { FeedbackStatus } from '../feedback-status.enum';
 
+@Schema({ _id: false })
+export class FeedbackStatusHistoryUser {
+  @ApiProperty()
+  @Prop({ required: true })
+  userId: string;
+
+  @ApiProperty()
+  @Prop({ required: true })
+  email: string;
+
+  @ApiProperty()
+  @Prop({ required: true })
+  name: string;
+
+  @ApiProperty()
+  @Prop({ required: true })
+  lastname: string;
+
+  @ApiProperty()
+  @Prop({ required: true })
+  phone: string;
+}
+
+export const FeedbackStatusHistoryUserSchema = SchemaFactory.createForClass(
+  FeedbackStatusHistoryUser,
+);
+
+@Schema()
+export class FeedbackStatusHistoryEntry {
+  @ApiProperty({ enum: FeedbackStatus })
+  @Prop({ required: true, enum: FeedbackStatus })
+  status: FeedbackStatus;
+
+  @ApiProperty()
+  @Prop({ required: true, default: Date.now })
+  changedAt: Date;
+
+  @ApiProperty({ type: FeedbackStatusHistoryUser })
+  @Prop({ type: FeedbackStatusHistoryUserSchema, required: true })
+  changedBy: FeedbackStatusHistoryUser;
+
+  @ApiPropertyOptional()
+  @Prop({ required: false })
+  note?: string;
+}
+
+export const FeedbackStatusHistoryEntrySchema = SchemaFactory.createForClass(
+  FeedbackStatusHistoryEntry,
+);
+
 @Schema({ collection: 'feedbacks' })
 export class Feedback extends Document {
   @ApiProperty()
@@ -92,6 +142,10 @@ export class Feedback extends Document {
     originalName: string;
     filename: string;
   } | null;
+
+  @ApiProperty({ type: [FeedbackStatusHistoryEntry], default: [] })
+  @Prop({ type: [FeedbackStatusHistoryEntrySchema], default: [] })
+  statusHistory: FeedbackStatusHistoryEntry[];
 }
 
 export const FeedbackSchema = SchemaFactory.createForClass(Feedback);
