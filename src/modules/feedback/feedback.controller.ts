@@ -79,7 +79,7 @@ export class FeedbackController {
   }
 
   @Public()
-  @Get('/view-feedback')
+  @Post('/view-feedback')
   @ApiBody({ type: ViewFeedbackDto })
   viewFeedback(@Body() dto: ViewFeedbackDto): Promise<Feedback> {
     return this.feedbackService.feedbackByCode(dto.caseNumber);

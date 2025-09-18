@@ -21,7 +21,7 @@ export class FeedbackService {
 
   constructor(
     @InjectModel(Feedback.name) private feedbackModel: Model<Feedback>,
-  ) { }
+  ) {}
 
   createFeedback(
     dto: CreateFeedbackDto,
