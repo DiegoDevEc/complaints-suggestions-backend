@@ -13,6 +13,18 @@ export class FeedbackStatusHistoryUser {
   @ApiProperty()
   @Prop({ required: true })
   email: string;
+
+  @ApiProperty()
+  @Prop({ required: true })
+  name: string;
+
+  @ApiProperty()
+  @Prop({ required: true })
+  lastname: string;
+
+  @ApiProperty()
+  @Prop({ required: true })
+  phone: string;
 }
 
 export const FeedbackStatusHistoryUserSchema = SchemaFactory.createForClass(

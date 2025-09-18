@@ -1,3 +1,4 @@
+import { PersonalData } from './../users/personal-data.schema';
 import {
   BadRequestException,
   Injectable,
@@ -91,6 +92,7 @@ export class AuthService {
     if (!match) {
       return null;
     }
+    await user.populate({ path: 'personalData' });
     return user;
   }
 
@@ -103,7 +105,15 @@ export class AuthService {
       user.isFirstLogin = false;
       await user.save();
     }
-    const payload = { sub: user.id, email: user.email, role: user.role };
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+      username: user.username,
+      name: (user.personalData as PersonalData)?.name || null,
+      lastname: (user.personalData as PersonalData)?.lastname || null,
+      phone: (user.personalData as PersonalData)?.phone || null,
+    };
     return {
       access_token: await this.jwtService.signAsync(payload),
     };

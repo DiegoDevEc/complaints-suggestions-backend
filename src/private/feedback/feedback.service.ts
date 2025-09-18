@@ -29,22 +29,22 @@ export class FeedbackService {
     if (!feedback.statusHistory) {
       feedback.statusHistory = [];
     }
-
     const historyEntry: FeedbackStatusHistoryEntry = {
       status,
       changedAt: new Date(),
       changedBy: {
         userId: user.userId,
         email: user.email,
+        name: user.name,
+        lastname: user.lastname,
+        phone: user.phone,
       },
     };
 
     if (note !== undefined) {
       historyEntry.note = note;
     }
-
     feedback.statusHistory.push(historyEntry);
-
     await feedback.save();
 
     return feedback;
