@@ -3,4 +3,6 @@ export enum FeedbackStatus {
   IN_PROGRESS = 'IN_PROGRESS',
   RESOLVED = 'RESOLVED',
   CANCEL = 'CANCEL',
+  RETURNED = 'RETURNED',
+  FORWARDED = 'FORWARDED',
 }
