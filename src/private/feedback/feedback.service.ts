@@ -5,11 +5,14 @@ import { Feedback } from '../../modules/feedback/schemas/feedback.schema';
 import type { FeedbackStatusHistoryEntry } from '../../modules/feedback/schemas/feedback.schema';
 import { FeedbackStatus } from '../../modules/feedback/feedback-status.enum';
 import { JwtUserPayload } from '../../auth/interfaces/jwt-user-payload.interface';
+import { NotificationsGateway } from 'src/notifications/notifications.gateway';
+import { log } from 'node:console';
 
 @Injectable()
 export class FeedbackService {
   constructor(
     @InjectModel(Feedback.name) private readonly feedbackModel: Model<Feedback>,
+    private readonly gateway: NotificationsGateway,
   ) {}
 
   async updateStatus(
@@ -46,6 +49,7 @@ export class FeedbackService {
     }
     feedback.statusHistory.push(historyEntry);
     await feedback.save();
+    this.gateway.sendNotification('statusUpdated', feedback);
 
     return feedback;
   }
