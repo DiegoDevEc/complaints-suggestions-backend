@@ -3,7 +3,6 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Document } from 'mongoose';
 import { FeedbackType } from '../feedback-type.enum';
 import { FeedbackStatus } from '../feedback-status.enum';
-import { FeedbackCompanyRequestDto } from 'src/private/feedback/dto/feedback-company-request.dto';
 
 @Schema({ _id: false })
 export class FeedbackStatusHistoryUser {
