@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString } from 'class-validator';
+import { IsArray, IsOptional, IsString } from 'class-validator';
 
 export class CreateCompanyDto {
   @ApiProperty()
@@ -13,4 +13,10 @@ export class CreateCompanyDto {
   @ApiProperty()
   @IsString()
   status: string;
+
+  @ApiProperty({ type: [String], required: false, default: [] })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  tags?: string[];
 }
