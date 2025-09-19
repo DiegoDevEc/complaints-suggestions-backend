@@ -6,7 +6,7 @@ import type { FeedbackStatusHistoryEntry } from '../../modules/feedback/schemas/
 import { FeedbackStatus } from '../../modules/feedback/feedback-status.enum';
 import { JwtUserPayload } from '../../auth/interfaces/jwt-user-payload.interface';
 import { NotificationsGateway } from 'src/notifications/notifications.gateway';
-import { log } from 'node:console';
+import { FeedbackCompanyRequestDto } from './dto/feedback-company-request.dto';
 
 @Injectable()
 export class FeedbackService {
@@ -82,5 +82,29 @@ export class FeedbackService {
     ]);
 
     return { data, total, page, limit };
+  }
+
+  async assignToCompany(
+    id: string,
+    dto: FeedbackCompanyRequestDto,
+  ): Promise<Feedback> {
+    const feedback = await this.feedbackModel.findById(id).exec();
+
+    if (!feedback) {
+      throw new NotFoundException(`Feedback with ID ${id} not found`);
+    }
+
+    feedback.status = FeedbackStatus.FORWARDED;
+
+    feedback.company = {
+      id: dto.id,
+      name: dto.name,
+      description: dto.description,
+    };
+
+    await feedback.save();
+    this.gateway.sendNotification('companyAssigned', feedback);
+
+    return feedback;
   }
 }

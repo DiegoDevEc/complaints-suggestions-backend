@@ -3,6 +3,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Document } from 'mongoose';
 import { FeedbackType } from '../feedback-type.enum';
 import { FeedbackStatus } from '../feedback-status.enum';
+import { FeedbackCompanyRequestDto } from 'src/private/feedback/dto/feedback-company-request.dto';
 
 @Schema({ _id: false })
 export class FeedbackStatusHistoryUser {
@@ -50,9 +51,27 @@ export class FeedbackStatusHistoryEntry {
   note?: string;
 }
 
+@Schema()
+export class FeedbackCompanyEntry {
+  @ApiPropertyOptional()
+  @Prop({ required: false })
+  id?: string;
+
+  @ApiPropertyOptional()
+  @Prop({ required: false })
+  name?: string;
+
+  @ApiPropertyOptional()
+  @Prop({ required: false })
+  description?: string;
+}
+
 export const FeedbackStatusHistoryEntrySchema = SchemaFactory.createForClass(
   FeedbackStatusHistoryEntry,
 );
+
+export const FeedbackCompanyEntrySchema =
+  SchemaFactory.createForClass(FeedbackCompanyEntry);
 
 @Schema({ collection: 'feedbacks' })
 export class Feedback extends Document {
@@ -146,6 +165,10 @@ export class Feedback extends Document {
   @ApiProperty({ type: [FeedbackStatusHistoryEntry], default: [] })
   @Prop({ type: [FeedbackStatusHistoryEntrySchema], default: [] })
   statusHistory: FeedbackStatusHistoryEntry[];
+
+  @ApiPropertyOptional()
+  @Prop({ type: FeedbackCompanyEntrySchema, required: false, default: null })
+  company?: FeedbackCompanyEntry | null;
 }
 
 export const FeedbackSchema = SchemaFactory.createForClass(Feedback);

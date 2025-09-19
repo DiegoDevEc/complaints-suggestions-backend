@@ -14,6 +14,7 @@ import { FeedbackService } from './feedback.service';
 import { UpdateFeedbackStatusDto } from './dto/update-feedback-status.dto';
 import { JwtUserPayload } from '../../auth/interfaces/jwt-user-payload.interface';
 import { Request } from 'express';
+import { FeedbackCompanyRequestDto } from './dto/feedback-company-request.dto';
 
 type RequestWithUser = Request & { user: JwtUserPayload };
 
@@ -58,5 +59,15 @@ export class FeedbackController {
     const pageNumber = parseInt(page as string, 10) || 1;
     const limitNumber = parseInt(limit as string, 10) || 10;
     return this.feedbackService.findAll(pageNumber, limitNumber, filters);
+  }
+
+  @Patch(':id/company')
+  @ApiOperation({ summary: 'Assign feedback to a company' })
+  @ApiBody({ type: FeedbackCompanyRequestDto })
+  assignToCompany(
+    @Param('id') id: string,
+    @Body() dto: FeedbackCompanyRequestDto,
+  ): Promise<Feedback> {
+    return this.feedbackService.assignToCompany(id, dto);
   }
 }
