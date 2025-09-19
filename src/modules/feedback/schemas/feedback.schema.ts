@@ -130,6 +130,10 @@ export class Feedback extends Document {
   @Prop({ default: Date.now })
   dateRegister: Date;
 
+  @ApiProperty({ default: '2025-08-05T17:00:00.000Z' })
+  @Prop({ default: null })
+  dateClosed: Date;
+
   @ApiProperty()
   @Prop({ required: true })
   address: string;

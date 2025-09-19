@@ -48,6 +48,9 @@ export class FeedbackService {
       historyEntry.note = note;
     }
     feedback.statusHistory.push(historyEntry);
+    if (status === FeedbackStatus.RESOLVED) {
+      feedback.dateClosed = new Date();
+    }
     await feedback.save();
     this.gateway.sendNotification('statusUpdated', feedback);
 

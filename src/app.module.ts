@@ -8,6 +8,7 @@ import { FeedbackModule } from './modules/feedback/feedback.module';
 import { FeedbackModule as PrivateFeedbackModule } from './private/feedback/feedback.module';
 import { CompanyModule } from './private/company/company.module';
 import { ConfigModule } from '@nestjs/config';
+import { DashboardModule } from './private/dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { ConfigModule } from '@nestjs/config';
     ),
     AuthModule,
     UsersModule,
+    DashboardModule,
     FeedbackModule,
     PrivateFeedbackModule,
     CompanyModule,
