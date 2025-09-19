@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Get,
   Logger,
   Post,
   UploadedFile,
@@ -58,7 +57,8 @@ export class FeedbackController {
   create(
     @Body() dto: CreateFeedbackDto,
     @UploadedFile(AttachmentValidationPipe) file?: MulterFile,
-  ): FeedbackResponseDto {
+  ): Promise<FeedbackResponseDto> {
+    this.logger.log('Received feedback submission');
     let attachmentMeta: AttachmentMeta | undefined;
     /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument */
     if (file) {
@@ -74,7 +74,6 @@ export class FeedbackController {
       };
     }
     const result = this.feedbackService.createFeedback(dto, attachmentMeta);
-    this.logger.log(`Feedback created: ${result.id}`);
     return result;
   }
 

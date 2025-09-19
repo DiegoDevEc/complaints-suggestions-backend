@@ -16,6 +16,10 @@ export class Company extends Document {
   @Prop({ required: true })
   status: string;
 
+  @ApiProperty()
+  @Prop({ required: true })
+  category: string;
+
   @ApiProperty({ type: [String], required: false, default: [] })
   @Prop({ type: [String], default: [] })
   tags: string[];

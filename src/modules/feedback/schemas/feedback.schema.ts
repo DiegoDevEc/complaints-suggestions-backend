@@ -63,6 +63,10 @@ export class FeedbackCompanyEntry {
   @ApiPropertyOptional()
   @Prop({ required: false })
   description?: string;
+
+  @ApiPropertyOptional()
+  @Prop({ required: false })
+  note?: string;
 }
 
 export const FeedbackStatusHistoryEntrySchema = SchemaFactory.createForClass(
@@ -151,7 +155,7 @@ export class Feedback extends Document {
     },
     _id: false,
     required: false,
-    default: null, // permite guardar sin adjunto
+    default: null,
   })
   attachment?: {
     url: string;
