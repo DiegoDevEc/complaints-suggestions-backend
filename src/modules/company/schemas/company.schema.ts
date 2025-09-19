@@ -17,6 +17,10 @@ export class Company extends Document {
   status: string;
 
   @ApiProperty({ type: [String], required: false, default: [] })
+  @Prop({ type: [String], default: [] })
+  tags: string[];
+
+  @ApiProperty({ type: [String], required: false, default: [] })
   @Prop({ type: [{ type: Types.ObjectId, ref: 'PersonalData' }], default: [] })
   contacts: Types.ObjectId[];
 }
