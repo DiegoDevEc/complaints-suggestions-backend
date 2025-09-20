@@ -103,4 +103,11 @@ export class DashboardService {
       typeDistribution,
     };
   }
+
+  getFeedbacksGeo(): Promise<{ latitude: number; longitude: number }[]> {
+    return this.feedbackModel.find(
+      { latitude: { $exists: true }, longitude: { $exists: true } },
+      { latitude: 1, longitude: 1, _id: 0 }
+    ).exec();
+  }
 }

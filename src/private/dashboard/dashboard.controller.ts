@@ -17,4 +17,9 @@ export class DashboardController {
   getSummary(): Promise<DashboardSummaryResponseDto> {
     return this.dashboardService.getSummary();
   }
+
+  @Get('feedbacks/geo')
+  async getFeedbacksGeo(): Promise<{ latitude: number; longitude: number }[]> {
+    return this.dashboardService.getFeedbacksGeo();
+  }
 }
