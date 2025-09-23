@@ -11,10 +11,7 @@ import {
   Company,
   CompanySchema,
 } from '../../modules/company/schemas/company.schema';
-import {
-  PersonalData,
-  PersonalDataSchema,
-} from '../../users/personal-data.schema';
+import { PersonalData, PersonalDataSchema } from 'src/users/personal-data.schema';
 
 @Module({
   imports: [
