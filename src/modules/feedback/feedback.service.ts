@@ -206,6 +206,7 @@ export class FeedbackService {
         .select('email')
         .lean()
         .exec();
+        
       const generalRecipients = new Set<string>(
         adminUsers
           .map((admin) => admin?.email)
@@ -218,10 +219,6 @@ export class FeedbackService {
       const companyRecipients = await this.getCompanyContactEmails(companyId);
       for (const email of companyRecipients) {
         generalRecipients.add(email);
-      }
-
-      if (authorEmail) {
-        generalRecipients.delete(authorEmail);
       }
 
       for (const email of generalRecipients) {
