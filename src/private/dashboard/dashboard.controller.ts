@@ -1,9 +1,13 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Req } from '@nestjs/common';
 import {
   DashboardService,
   DashboardSummaryResponseDto,
 } from './dashboard.service';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Request } from 'express';
+import { JwtUserPayload } from '../../auth/interfaces/jwt-user-payload.interface';
+
+type RequestWithUser = Request & { user: JwtUserPayload };
 
 @Controller('private/dashboard')
 @ApiTags('Dashboard')
@@ -14,12 +18,16 @@ export class DashboardController {
   @ApiOperation({
     summary: 'Obtener métricas agregadas del dashboard administrativo',
   })
-  getSummary(): Promise<DashboardSummaryResponseDto> {
-    return this.dashboardService.getSummary();
+  getSummary(
+    @Req() req: RequestWithUser,
+  ): Promise<DashboardSummaryResponseDto> {
+    return this.dashboardService.getSummary(req.user);
   }
 
   @Get('feedbacks/geo')
-  async getFeedbacksGeo(): Promise<{ latitude: number; longitude: number }[]> {
-    return this.dashboardService.getFeedbacksGeo();
+  async getFeedbacksGeo(
+    @Req() req: RequestWithUser,
+  ): Promise<{ latitude: number; longitude: number }[]> {
+    return this.dashboardService.getFeedbacksGeo(req.user);
   }
 }
