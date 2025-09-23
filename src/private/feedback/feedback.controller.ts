@@ -54,11 +54,19 @@ export class FeedbackController {
   })
   @ApiQuery({ name: 'page', required: false })
   @ApiQuery({ name: 'limit', required: false })
-  async findAll(@Query() query: Record<string, unknown>) {
+  async findAll(
+    @Query() query: Record<string, unknown>,
+    @Req() req: RequestWithUser,
+  ) {
     const { page = 1, limit = 10, ...filters } = query;
     const pageNumber = parseInt(page as string, 10) || 1;
     const limitNumber = parseInt(limit as string, 10) || 10;
-    return this.feedbackService.findAll(pageNumber, limitNumber, filters);
+    return this.feedbackService.findAll(
+      pageNumber,
+      limitNumber,
+      filters,
+      req.user,
+    );
   }
 
   @Patch(':id/company')

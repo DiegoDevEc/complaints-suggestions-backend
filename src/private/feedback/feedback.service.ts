@@ -1,17 +1,25 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Feedback } from '../../modules/feedback/schemas/feedback.schema';
 import type { FeedbackStatusHistoryEntry } from '../../modules/feedback/schemas/feedback.schema';
 import { FeedbackStatus } from '../../modules/feedback/feedback-status.enum';
 import { JwtUserPayload } from '../../auth/interfaces/jwt-user-payload.interface';
 import { NotificationsGateway } from 'src/notifications/notifications.gateway';
 import { FeedbackCompanyRequestDto } from './dto/feedback-company-request.dto';
+import { Company } from '../../modules/company/schemas/company.schema';
+import { PersonalData } from '../../users/personal-data.schema';
+import { Role } from '../../users/role.enum';
+import { log } from 'console';
 
 @Injectable()
 export class FeedbackService {
   constructor(
     @InjectModel(Feedback.name) private readonly feedbackModel: Model<Feedback>,
+    @InjectModel(Company.name)
+    private readonly companyModel: Model<Company>,
+    @InjectModel(PersonalData.name)
+    private readonly personalDataModel: Model<PersonalData>,
     private readonly gateway: NotificationsGateway,
   ) {}
 
@@ -65,6 +73,7 @@ export class FeedbackService {
     page = 1,
     limit = 10,
     filters: Record<string, unknown> = {},
+    user: JwtUserPayload,
   ): Promise<{ data: Feedback[]; total: number; page: number; limit: number }> {
     const skip = (page - 1) * limit;
 
@@ -77,7 +86,21 @@ export class FeedbackService {
       }
     }
 
-    const query = this.feedbackModel.find(mongoFilters).skip(skip).limit(limit);
+    if (user.role !== Role.ADMIN) {
+      const companyIds = await this.getCompanyIdsForUser(user.userId);
+
+      if (companyIds.length === 0) {
+        return { data: [], total: 0, page, limit };
+      }
+
+      mongoFilters['company.id'] = { $in: companyIds };
+    }
+
+    const query = this.feedbackModel
+      .find(mongoFilters)
+      .sort({ dateRegister: -1 })
+      .skip(skip)
+      .limit(limit);
 
     const [data, total] = await Promise.all([
       query.exec(),
@@ -85,6 +108,38 @@ export class FeedbackService {
     ]);
 
     return { data, total, page, limit };
+  }
+
+  private async getCompanyIdsForUser(userId: string): Promise<string[]> {
+    log('Fetching company IDs for user:', userId);
+    const personalData = await this.personalDataModel
+      .findOne({ user: new Types.ObjectId(userId) })
+      .select('_id')
+      .exec();
+
+    if (!personalData?._id) {
+      return [];
+    }
+
+    const companies = await this.companyModel
+      .find({ contacts: personalData._id })
+      .select('_id')
+      .exec() as { _id: unknown }[];
+
+    const uniqueIds = new Set(
+      companies
+        .map((company) => {
+          if (typeof company._id === 'string') return company._id;
+          if (company._id && typeof (company._id as any).toString === 'function') {
+            return (company._id as any).toString();
+          }
+          return '';
+        })
+        .filter((id) => id.length > 0),
+    );
+    log('Unique Company IDs:', uniqueIds);
+
+    return Array.from(uniqueIds);
   }
 
   async assignToCompany(
