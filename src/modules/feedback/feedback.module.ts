@@ -9,15 +9,24 @@ import { Feedback, FeedbackSchema } from './schemas/feedback.schema';
 import { AiClassifierService } from './ai-classifier.service';
 import { Company, CompanySchema } from '../company/schemas/company.schema';
 import { HttpModule } from '@nestjs/axios';
+import { NotificationsModule } from '../../notifications/notifications.module';
+import { User, UserSchema } from '../../users/user.schema';
+import {
+  PersonalData,
+  PersonalDataSchema,
+} from '../../users/personal-data.schema';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: Feedback.name, schema: FeedbackSchema },
       { name: Company.name, schema: CompanySchema },
+      { name: User.name, schema: UserSchema },
+      { name: PersonalData.name, schema: PersonalDataSchema },
     ]),
     UploadModule,
     HttpModule,
+    NotificationsModule,
   ],
   controllers: [FeedbackController],
   providers: [
