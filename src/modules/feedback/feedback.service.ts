@@ -8,6 +8,7 @@ import { Model } from 'mongoose';
 import { AiClassifierService } from './ai-classifier.service';
 import { Company } from '../company/schemas/company.schema';
 import { FeedbackStatus } from './feedback-status.enum';
+import { FeedbackPdfService } from './feedback-pdf.service';
 import { log } from 'console';
 import {
   NotificationsService,
@@ -15,6 +16,7 @@ import {
 } from '../../notifications/notifications.service';
 import { User } from '../../users/user.schema';
 import { Role } from '../../users/role.enum';
+import { FeedbackType } from './feedback-type.enum';
 
 export interface AttachmentMeta {
   url: string;
@@ -35,6 +37,7 @@ export class FeedbackService {
     @InjectModel(User.name) private readonly userModel: Model<User>,
     private readonly aiClassifierService: AiClassifierService,
     private readonly notificationsService: NotificationsService,
+    private readonly feedbackPdfService: FeedbackPdfService,
   ) {}
 
   async createFeedback(
@@ -193,7 +196,7 @@ export class FeedbackService {
 
       if (authorEmail) {
         notifications.push(
-          this.safeSendEmail({
+          this.safeSendAuthorEmail(feedbackDoc, {
             to: authorEmail,
             subject: `Registro de feedback - ${caseNumber}`,
             html: this.buildAuthorEmailHtml(feedbackDoc),
@@ -287,6 +290,39 @@ export class FeedbackService {
       await this.notificationsService.sendEmail(options);
     } catch {
       // El servicio de notificaciones ya registra los errores
+    }
+  }
+
+  private async safeSendAuthorEmail(
+    feedback: Feedback,
+    options: SendEmailOptions,
+  ): Promise<void> {
+    if (feedback.type !== FeedbackType.COMPLAINT) {
+      await this.safeSendEmail(options);
+      return;
+    }
+
+    try {
+      const pdfBuffer = await this.feedbackPdfService.generateComplaintCertificate(feedback);
+      const attachments = [
+        {
+          filename: `constancia-${feedback.caseNumber}.pdf`,
+          content: pdfBuffer.toString('base64'),
+          contentType: 'application/pdf',
+        },
+      ];
+
+      await this.safeSendEmail({
+        ...options,
+        attachments,
+      });
+    } catch (error) {
+      this.logger.error(
+        `No se pudo generar la constancia en PDF para el feedback ${feedback.caseNumber}: ${
+          error instanceof Error ? error.message : error
+        }`,
+      );
+      await this.safeSendEmail(options);
     }
   }
 

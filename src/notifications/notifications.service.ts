@@ -4,12 +4,19 @@ import { request as httpRequest } from 'node:http';
 import { request as httpsRequest } from 'node:https';
 import { URL } from 'node:url';
 
+export interface EmailAttachment {
+  filename: string;
+  content: string;
+  contentType?: string;
+}
+
 export interface SendEmailOptions {
   to: string;
   subject: string;
   html: string;
   text?: string;
   from?: string;
+  attachments?: EmailAttachment[];
 }
 
 @Injectable()
@@ -38,12 +45,26 @@ export class NotificationsService {
     }
 
     const url = new URL(this.apiUrl);
-    const payload = JSON.stringify({
+    const payloadData: Record<string, unknown> = {
       from: options.from ?? this.defaultFrom,
       to: [options.to], // Resend espera un array
       subject: options.subject,
       html: options.html,
-    });
+    };
+
+    if (options.text) {
+      payloadData.text = options.text;
+    }
+
+    if (options.attachments && options.attachments.length > 0) {
+      payloadData.attachments = options.attachments.map((attachment) => ({
+        filename: attachment.filename,
+        content: attachment.content,
+        ...(attachment.contentType ? { contentType: attachment.contentType } : {}),
+      }));
+    }
+
+    const payload = JSON.stringify(payloadData);
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',

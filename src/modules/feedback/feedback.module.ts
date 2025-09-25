@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { UploadModule } from '../upload';
 import { FeedbackController } from './feedback.controller';
 import { FeedbackService } from './feedback.service';
+import { FeedbackPdfService } from './feedback-pdf.service';
 import { StorageService } from '../../storage/storage.service';
 import { FileStorageService } from '../../storage/file-storage.service';
 import { MongooseModule } from '@nestjs/mongoose/dist/mongoose.module';
@@ -31,6 +32,7 @@ import {
   controllers: [FeedbackController],
   providers: [
     FeedbackService,
+    FeedbackPdfService,
     {
       provide: StorageService,
       useClass: FileStorageService,
