@@ -9,6 +9,8 @@ import { FeedbackModule as PrivateFeedbackModule } from './private/feedback/feed
 import { CompanyModule } from './private/company/company.module';
 import { ConfigModule } from '@nestjs/config';
 import { DashboardModule } from './private/dashboard/dashboard.module';
+import { PermissionsModule } from './private/permissions/permissions.module';
+import { RolesModule } from './private/roles/roles.module';
 
 @Module({
   imports: [
@@ -21,6 +23,8 @@ import { DashboardModule } from './private/dashboard/dashboard.module';
     FeedbackModule,
     PrivateFeedbackModule,
     CompanyModule,
+    PermissionsModule,
+    RolesModule,
     ConfigModule.forRoot({
       isGlobal: true,
     }),
