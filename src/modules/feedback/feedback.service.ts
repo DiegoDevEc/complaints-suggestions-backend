@@ -38,7 +38,7 @@ export class FeedbackService {
     private readonly aiClassifierService: AiClassifierService,
     private readonly notificationsService: NotificationsService,
     private readonly feedbackPdfService: FeedbackPdfService,
-  ) {}
+  ) { }
 
   async createFeedback(
     dto: CreateFeedbackDto,
@@ -75,17 +75,13 @@ export class FeedbackService {
     const companySave =
       companyId != null
         ? {
-            id: companyId,
-            ...(normalizedCompany.name
-              ? { name: normalizedCompany.name }
-              : {}),
-            ...(normalizedCompany.category
-              ? { description: normalizedCompany.category }
-              : {}),
-            ...(normalizedCompany.note
-              ? { note: normalizedCompany.note }
-              : {}),
-          }
+          id: companyId,
+          ...(normalizedCompany.name ? { name: normalizedCompany.name } : {}),
+          ...(normalizedCompany.category
+            ? { description: normalizedCompany.category }
+            : {}),
+          ...(normalizedCompany.note ? { note: normalizedCompany.note } : {}),
+        }
         : null;
 
     log('Company to link:', companySave);
@@ -209,7 +205,7 @@ export class FeedbackService {
         .select('email')
         .lean()
         .exec();
-        
+
       const generalRecipients = new Set<string>(
         adminUsers
           .map((admin) => admin?.email)
@@ -225,6 +221,7 @@ export class FeedbackService {
       }
 
       for (const email of generalRecipients) {
+      await new Promise((resolve) => setTimeout(resolve, 500));
         notifications.push(
           this.safeSendEmail({
             to: email,
@@ -303,7 +300,8 @@ export class FeedbackService {
     }
 
     try {
-      const pdfBuffer = await this.feedbackPdfService.generateComplaintCertificate(feedback);
+      const pdfBuffer =
+        await this.feedbackPdfService.generateComplaintCertificate(feedback);
       const attachments = [
         {
           filename: `constancia-${feedback.caseNumber}.pdf`,
@@ -311,15 +309,14 @@ export class FeedbackService {
           contentType: 'application/pdf',
         },
       ];
-
+      await new Promise((resolve) => setTimeout(resolve, 10000));
       await this.safeSendEmail({
         ...options,
         attachments,
       });
     } catch (error) {
       this.logger.error(
-        `No se pudo generar la constancia en PDF para el feedback ${feedback.caseNumber}: ${
-          error instanceof Error ? error.message : error
+        `No se pudo generar la constancia en PDF para el feedback ${feedback.caseNumber}: ${error instanceof Error ? error.message : error
         }`,
       );
       await this.safeSendEmail(options);
