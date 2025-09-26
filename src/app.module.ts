@@ -11,6 +11,7 @@ import { ConfigModule } from '@nestjs/config';
 import { DashboardModule } from './private/dashboard/dashboard.module';
 import { PermissionsModule } from './private/permissions/permissions.module';
 import { RolesModule } from './private/roles/roles.module';
+import { ReportsModule } from './private/reports/reports.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { RolesModule } from './private/roles/roles.module';
     CompanyModule,
     PermissionsModule,
     RolesModule,
+    ReportsModule,
     ConfigModule.forRoot({
       isGlobal: true,
     }),
