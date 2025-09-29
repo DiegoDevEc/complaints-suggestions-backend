@@ -25,7 +25,7 @@ COPY --from=builder /app/package*.json ./
 # Copiar recursos estáticos a dist
 COPY --from=builder /app/src/img ./dist/img
 COPY --from=builder /app/src/fonts ./dist/fonts
-COPY --from=builder /app/public ./public
+# (Quitamos la línea de public porque no existe en backend)
 
 # Instalar solo dependencias necesarias para producción
 RUN npm ci --omit=dev
