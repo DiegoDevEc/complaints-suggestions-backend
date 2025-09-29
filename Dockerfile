@@ -1,42 +1,37 @@
 # -------- Stage 1: Build --------
-FROM node:20 AS builder
+FROM node:20.19.0 AS builder
 
-# Set working directory
 WORKDIR /app
 
-# Copy package files
+# Copiar dependencias e instalar
 COPY package*.json ./
+RUN npm ci
 
-# Install dependencies (including dev deps for build)
-RUN npm install
-
-# Copy source code
+# Copiar el resto del código
 COPY . .
 
-# Build project
+# Compilar NestJS
 RUN npm run build
 
-# -------- Stage 2: Run --------
-FROM node:20-slim AS runner
+# -------- Stage 2: Runtime --------
+FROM node:20.19.0-slim
 
-# Set working directory
 WORKDIR /app
 
-# Copy only production deps
-COPY package*.json ./
-RUN npm install --only=production
-
-# Copy build output from builder
+# Copiar solo lo necesario de la build
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/package*.json ./
 
-# Copy other needed files (like migrations, public assets, etc.)
-COPY --from=builder /app/node_modules ./node_modules
+# Copiar recursos estáticos a dist
+COPY --from=builder /app/src/img ./dist/img
+COPY --from=builder /app/src/fonts ./dist/fonts
+COPY --from=builder /app/public ./public
 
-# Expose port
+# Instalar solo dependencias necesarias para producción
+RUN npm ci --omit=dev
+
+# Puerto expuesto
 EXPOSE 3000
 
-# Set environment variable (Coolify puede sobreescribir esto)
-ENV NODE_ENV=production
-
-# Run app
-CMD ["node", "dist/main"]
+# Comando para iniciar la app
+CMD ["node", "dist/main.js"]
