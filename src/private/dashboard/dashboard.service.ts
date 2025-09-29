@@ -6,6 +6,7 @@ import { JwtUserPayload } from '../../auth/interfaces/jwt-user-payload.interface
 import { Role } from '../../users/role.enum';
 import { Company } from '../../modules/company/schemas/company.schema';
 import { PersonalData } from '../../users/personal-data.schema';
+import { FeedbackGeoQueryDto } from './dto/feedback-geo-query.dto';
 
 export interface DashboardSummaryResponseDto {
   totalFeedbacks: number;
@@ -150,6 +151,7 @@ export class DashboardService {
 
   async getFeedbacksGeo(
     user: JwtUserPayload,
+    filters?: FeedbackGeoQueryDto,
   ): Promise<{ latitude: number; longitude: number }[]> {
     const companyMatch = await this.buildCompanyMatch(user);
 
@@ -157,15 +159,22 @@ export class DashboardService {
       return [];
     }
 
+    const query: Record<string, unknown> = {
+      ...companyMatch,
+      latitude: { $exists: true },
+      longitude: { $exists: true },
+    };
+
+    if (filters?.type) {
+      query.type = filters.type;
+    }
+
+    if (filters?.status) {
+      query.status = filters.status;
+    }
+
     return this.feedbackModel
-      .find(
-        {
-          ...companyMatch,
-          latitude: { $exists: true },
-          longitude: { $exists: true },
-        },
-        { latitude: 1, longitude: 1, _id: 0 },
-      )
+      .find(query, { latitude: 1, longitude: 1, _id: 0 })
       .exec();
   }
 

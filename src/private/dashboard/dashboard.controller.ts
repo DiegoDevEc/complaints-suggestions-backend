@@ -1,11 +1,14 @@
-import { Controller, Get, Req } from '@nestjs/common';
+import { Controller, Get, Query, Req } from '@nestjs/common';
 import {
   DashboardService,
   DashboardSummaryResponseDto,
 } from './dashboard.service';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
 import { JwtUserPayload } from '../../auth/interfaces/jwt-user-payload.interface';
+import { FeedbackGeoQueryDto } from './dto/feedback-geo-query.dto';
+import { FeedbackType } from '../../modules/feedback/feedback-type.enum';
+import { FeedbackStatus } from '../../modules/feedback/feedback-status.enum';
 
 type RequestWithUser = Request & { user: JwtUserPayload };
 
@@ -25,9 +28,12 @@ export class DashboardController {
   }
 
   @Get('feedbacks/geo')
+  @ApiQuery({ name: 'type', required: false, enum: FeedbackType })
+  @ApiQuery({ name: 'status', required: false, enum: FeedbackStatus })
   async getFeedbacksGeo(
     @Req() req: RequestWithUser,
+    @Query() filters: FeedbackGeoQueryDto,
   ): Promise<{ latitude: number; longitude: number }[]> {
-    return this.dashboardService.getFeedbacksGeo(req.user);
+    return this.dashboardService.getFeedbacksGeo(req.user, filters);
   }
 }
