@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { CreateFeedbackDto } from './dto/create-feedback.dto';
@@ -17,6 +18,7 @@ import {
 import { User } from '../../users/user.schema';
 import { Role } from '../../users/role.enum';
 import { FeedbackType } from './feedback-type.enum';
+import { HttpService } from '@nestjs/axios';
 
 export interface AttachmentMeta {
   url: string;
@@ -30,6 +32,8 @@ export interface AttachmentMeta {
 export class FeedbackService {
   private readonly logger = new Logger(FeedbackService.name);
   private readonly feedbacks: FeedbackResponseDto[] = [];
+  private readonly urlN8n =
+    'https://n8n.srv863641.hstgr.cloud/webhook/feedback';
 
   constructor(
     @InjectModel(Feedback.name) private feedbackModel: Model<Feedback>,
@@ -38,7 +42,8 @@ export class FeedbackService {
     private readonly aiClassifierService: AiClassifierService,
     private readonly notificationsService: NotificationsService,
     private readonly feedbackPdfService: FeedbackPdfService,
-  ) { }
+    private readonly httpService: HttpService,
+  ) {}
 
   async createFeedback(
     dto: CreateFeedbackDto,
@@ -49,11 +54,11 @@ export class FeedbackService {
       ...dto,
       attachment: attachment
         ? {
-          url: attachment.url,
-          mimeType: attachment.mimeType,
-          size: attachment.size,
-          originalName: attachment.originalName,
-        }
+            url: attachment.url,
+            mimeType: attachment.mimeType,
+            size: attachment.size,
+            originalName: attachment.originalName,
+          }
         : null,
       createdAt: new Date().toISOString(),
     };
@@ -75,28 +80,25 @@ export class FeedbackService {
     const companySave =
       companyId != null
         ? {
-          id: companyId,
-          ...(normalizedCompany.name ? { name: normalizedCompany.name } : {}),
-          ...(normalizedCompany.category
-            ? { description: normalizedCompany.category }
-            : {}),
-          ...(normalizedCompany.note ? { note: normalizedCompany.note } : {}),
-        }
+            id: companyId,
+            ...(normalizedCompany.name ? { name: normalizedCompany.name } : {}),
+            ...(normalizedCompany.category
+              ? { description: normalizedCompany.category }
+              : {}),
+            ...(normalizedCompany.note ? { note: normalizedCompany.note } : {}),
+          }
         : null;
 
-    log('Company to link:', companySave);
-    log('Company selected:', companySelected);
-    log('Creating feedback entry in database...');
     const feedbackModel = new this.feedbackModel({
       ...dto,
       caseNumber: this.makeCaseNumber(),
       attachment: attachment
         ? {
-          url: attachment.url,
-          mimeType: attachment.mimeType,
-          size: attachment.size,
-          originalName: attachment.originalName,
-        }
+            url: attachment.url,
+            mimeType: attachment.mimeType,
+            size: attachment.size,
+            originalName: attachment.originalName,
+          }
         : null,
       company: companySave,
       // eslint-disable-next-line prettier/prettier
@@ -104,6 +106,14 @@ export class FeedbackService {
     });
     log('Feedback entry created:', feedbackModel);
     const savedFeedback = await feedbackModel.save();
+
+    this.sendFeedbackSheet(savedFeedback).catch((error) => {
+      this.logger.error(
+        `Error enviando feedback a n8n para el feedback ${savedFeedback.caseNumber}: ${
+          error instanceof Error ? error.message : error
+        }`,
+      );
+    });
 
     void this.sendFeedbackCreationNotifications(savedFeedback, companyId);
 
@@ -221,7 +231,7 @@ export class FeedbackService {
       }
 
       for (const email of generalRecipients) {
-      await new Promise((resolve) => setTimeout(resolve, 500));
+        await new Promise((resolve) => setTimeout(resolve, 500));
         notifications.push(
           this.safeSendEmail({
             to: email,
@@ -316,7 +326,8 @@ export class FeedbackService {
       });
     } catch (error) {
       this.logger.error(
-        `No se pudo generar la constancia en PDF para el feedback ${feedback.caseNumber}: ${error instanceof Error ? error.message : error
+        `No se pudo generar la constancia en PDF para el feedback ${feedback.caseNumber}: ${
+          error instanceof Error ? error.message : error
         }`,
       );
       await this.safeSendEmail(options);
@@ -347,4 +358,47 @@ export class FeedbackService {
       `<p>${feedback.description}</p>`,
     ].join('');
   }
+
+  async sendFeedbackSheet(feedback: Feedback): Promise<void> {
+    try {
+      const feedbackData = {
+        numeroCaso: feedback.caseNumber,
+        fecha: feedback.dateRegister,
+        nombre: feedback.firstName,
+        apellido: feedback.lastName,
+        email: feedback.email,
+        telefono: feedback.phone,
+        descripcion: feedback.description,
+        tipo: this.feedbackTypeMap[feedback.type] || feedback.type,
+        designacion: feedback.company?.name || 'No asignada',
+        direccion: feedback.address,
+        latitude: feedback.latitude,
+        longitude: feedback.longitude,
+        attachmentUrl: feedback.attachment?.url || null,
+        status: this.feedbackStatusMap[feedback.status] || feedback.status,
+      };
+
+      const response = await this.httpService
+        .post(this.urlN8n, feedbackData)
+        .toPromise();
+
+      this.logger.log(`Webhook enviado con éxito: ${response?.data.message}`);
+    } catch (error) {
+      this.logger.error(`Error enviando webhook a n8n: ${error}`);
+    }
+  }
+
+  private readonly feedbackTypeMap: Record<string, string> = {
+    complaint: 'Denuncia/ Queja',
+    suggestion: 'Sugerencia',
+    compliment: 'Elogio',
+  };
+
+  private readonly feedbackStatusMap: Record<string, string> = {
+    PENDING: 'Pendiente',
+    FORWARDED: 'Derivado a empresa',
+    IN_PROGRESS: 'En proceso',
+    RESOLVED: 'Resuelto',
+    CLOSED: 'Cerrado',
+  };
 }
