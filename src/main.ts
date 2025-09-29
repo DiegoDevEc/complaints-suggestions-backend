@@ -12,7 +12,10 @@ async function bootstrap() {
   app.use('/public/files', express.static(join(process.cwd(), 'uploads')));
 
   app.enableCors({
-    origin: ['http://localhost:4200'], // agrega otros orígenes si usas más
+    origin: [
+      'http://localhost:4200', // desarrollo
+      'https://app.app-escom.org', // frontend en producción
+    ], // agrega otros orígenes si usas más
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     allowedHeaders: 'Content-Type, Authorization, X-Requested-With',
     credentials: false, // si NO usas cookies; deja en false (con JWT en header no hace falta)
