@@ -12,10 +12,12 @@ import {
   CompanySchema,
 } from '../../modules/company/schemas/company.schema';
 import { PersonalData, PersonalDataSchema } from 'src/users/personal-data.schema';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
   imports: [
     NotificationsModule,
+    HttpModule,
     MongooseModule.forFeature([
       { name: Feedback.name, schema: FeedbackSchema },
       { name: Company.name, schema: CompanySchema },

@@ -391,12 +391,12 @@ export class FeedbackService {
   private readonly feedbackTypeMap: Record<string, string> = {
     complaint: 'Denuncia/ Queja',
     suggestion: 'Sugerencia',
-    compliment: 'Elogio',
+    compliment: 'Felicitación',
   };
 
   private readonly feedbackStatusMap: Record<string, string> = {
     PENDING: 'Pendiente',
-    FORWARDED: 'Derivado a empresa',
+    FORWARDED: 'Derivado',
     IN_PROGRESS: 'En proceso',
     RESOLVED: 'Resuelto',
     CLOSED: 'Cerrado',

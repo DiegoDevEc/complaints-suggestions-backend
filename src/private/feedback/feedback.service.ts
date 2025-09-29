@@ -11,9 +11,14 @@ import { Company } from '../../modules/company/schemas/company.schema';
 import { PersonalData } from '../../users/personal-data.schema';
 import { Role } from '../../users/role.enum';
 import { log } from 'console';
+import { HttpService } from '@nestjs/axios';
 
 @Injectable()
 export class FeedbackService {
+  private readonly urlN8n =
+    'https://n8n.srv863641.hstgr.cloud/webhook/update-status';
+  private readonly urlN8nCompany =
+    'https://n8n.srv863641.hstgr.cloud/webhook/074c7af3-43ed-48e8-9e12-0e989e6d14b0';
   constructor(
     @InjectModel(Feedback.name) private readonly feedbackModel: Model<Feedback>,
     @InjectModel(Company.name)
@@ -21,6 +26,7 @@ export class FeedbackService {
     @InjectModel(PersonalData.name)
     private readonly personalDataModel: Model<PersonalData>,
     private readonly gateway: NotificationsGateway,
+    private readonly httpService: HttpService,
   ) {}
 
   async updateStatus(
@@ -61,6 +67,8 @@ export class FeedbackService {
     }
     await feedback.save();
     this.gateway.sendNotification('statusUpdated', feedback);
+    log('Feedback status updated:', feedback);
+    await this.sendFeedbackSheet(feedback);
 
     return feedback;
   }
@@ -121,16 +129,19 @@ export class FeedbackService {
       return [];
     }
 
-    const companies = await this.companyModel
+    const companies = (await this.companyModel
       .find({ contacts: personalData._id })
       .select('_id')
-      .exec() as { _id: unknown }[];
+      .exec()) as { _id: unknown }[];
 
     const uniqueIds = new Set(
       companies
         .map((company) => {
           if (typeof company._id === 'string') return company._id;
-          if (company._id && typeof (company._id as any).toString === 'function') {
+          if (
+            company._id &&
+            typeof (company._id as any).toString === 'function'
+          ) {
             return (company._id as any).toString();
           }
           return '';
@@ -162,7 +173,42 @@ export class FeedbackService {
 
     await feedback.save();
     this.gateway.sendNotification('companyAssigned', feedback);
-
+    log('Feedback assigned to company:', feedback);
+    await this.sendFeedbackSheetUpdateCompany(feedback);
     return feedback;
   }
+
+  async sendFeedbackSheetUpdateCompany(feedback: Feedback): Promise<void> {
+    try {
+      const feedbackData = {
+        caseNumber: feedback.caseNumber,
+        company: feedback.company?.name || 'No asignada',
+      };
+      log('Sending feedback data to n8n:', feedbackData);
+      await this.httpService.post(this.urlN8nCompany, feedbackData).toPromise();
+    } catch (error) {
+      console.error('Error sending feedback sheet to n8n:', error);
+    }
+  }
+
+  async sendFeedbackSheet(feedback: Feedback): Promise<void> {
+    try {
+      const feedbackData = {
+        caseNumber: feedback.caseNumber,
+        status: this.feedbackStatusMap[feedback.status] || feedback.status,
+      };
+      log('Sending feedback data to n8n:', feedbackData);
+      await this.httpService.post(this.urlN8n, feedbackData).toPromise();
+    } catch (error) {
+      console.error('Error sending feedback sheet to n8n:', error);
+    }
+  }
+
+  private readonly feedbackStatusMap: Record<string, string> = {
+    PENDING: 'Pendiente',
+    FORWARDED: 'Derivado',
+    IN_PROGRESS: 'En proceso',
+    RESOLVED: 'Resuelto',
+    CLOSED: 'Cerrado',
+  };
 }
